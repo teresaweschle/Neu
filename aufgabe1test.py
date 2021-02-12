@@ -265,6 +265,14 @@ def test_build_pre_dimacs_string():
 
 
 def test_create_dimacs():
+    y = ParserStringToDIMACS()
+    t = "And (Or(a, b), Or(x, y))"
+    t = y.build_term_from_string(t)
+    t = y.create_dimacs(t)
+    res = "p cnf "
+
+
+
 
 
 
