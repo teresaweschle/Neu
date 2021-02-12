@@ -269,7 +269,18 @@ def test_create_dimacs():
     t = "And (Or(a, b), Or(x, y))"
     t = y.build_term_from_string(t)
     t = y.create_dimacs(t)
-    res = "p cnf "
+    res = "p cnf 4 2\n1 2 0\n3 4 0"
+    assert res == t
+    t = "Impl(a, b)"
+    t = y.build_term_from_string(t)
+    t = y.convert_to_cnf(t)
+    t = y.create_dimacs(t)
+    res = "p cnf 2 1\n-1 2 0"
+    assert res == t
+
+
+
+
 
 
 
@@ -283,3 +294,4 @@ test_de_morgan()
 test_apply_distributive_law()
 test_convert_to_cnf()
 test_build_pre_dimacs_string()
+test_create_dimacs()

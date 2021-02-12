@@ -1,3 +1,4 @@
+import subprocess
 class Term:
     """
     Klasse zur Repraesentation von logischen Ausdruecken der Form
@@ -421,4 +422,50 @@ class ParserStringToDIMACS:
             raise Exception("Formula in CNF is TOP, no dmacs exists ")
         return ParserStringToDIMACS.create_dimacs(formula_term_in_cnf)
 
+    def get_all_models(formula, stabalize):
+        """ Erzeugt eine Textdatei "allmodels" für eine gegebene Formel f, die alle Modelle von f enthält.
 
+                                      :param formula: String
+                                      :param stabalize:
+
+                                      :return: DIMACS-String
+        """
+
+        sat = True
+        allmodels = open("allmodels", "w+")
+        cnf = ParserStringToDIMACS.convert_formula_to_dmacs(formula, stabalize)
+        file = open("problem.cnf", "w+")
+        file.write(cnf)
+        file.close()
+        while sat:
+            subprocess.run(["minisat", "problem.cnf", "problem.model"])
+            modelfile = open("problem.model", "r")
+            result = modelfile.read()
+            modelfile.close()
+            if result[0:3] != "SAT":
+                sat = False
+                allmodels.close()
+                break
+            newmodel = result[4:]
+            allmodels.write(newmodel)
+            extension_clause = ""
+            for i in range(0, len(newmodel)):
+                if newmodel[i] == "\n" or newmodel[i] == " " or newmodel[i] == "0":
+                    extension_clause += newmodel[i]
+                elif newmodel[i] == "-":
+                    continue
+                else:
+                    if i > 0:
+                        if newmodel[i - 1] == "-":
+                            extension_clause += newmodel[i]
+                        else:
+                            extension_clause += "-" + newmodel[i]
+                    else:
+                        extension_clause += "-" + newmodel[i]
+            file = open("problem.cnf", "r")
+            old_cnf = file.read()
+            file.close()
+            number_of_clauses = int(old_cnf[8]) + 1
+            file = open("problem.cnf", "w+")
+            file.write(old_cnf[:8] + str(number_of_clauses) + old_cnf[9:] + "\n" + extension_clause)
+            file.close()
